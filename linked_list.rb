@@ -25,8 +25,25 @@ class LinkedList
 
   def add_at_head(val)
     new_head = Node.new(val, @head.next)
+    unless @head
+      @head = new_head
+      return
+    end
     new_head.next = @head
     @head = new_head
+  end
+
+  def add_at_end(val)
+    node = @head
+    new_node = Node.new(val, nil)
+    unless @head
+      @head = new_node
+      return
+    end
+    while node.next
+      node = node.next
+    end
+    node.next = new_node
   end
 
   def add_after_node(data, prev_node)
@@ -65,6 +82,14 @@ puts "Second node = #{second_node.val}, next = #{second_node.next.val}"
 
 ll.add_after_node(25, second_node)
 
+ll.return_list.map do |node|
+  puts node.val
+end
+
+
+puts "\n\nTesting add at end\n\n"
+
+ll.add_at_end(5)
 ll.return_list.map do |node|
   puts node.val
 end
