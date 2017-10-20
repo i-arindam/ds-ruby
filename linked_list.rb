@@ -2,16 +2,46 @@ require 'pry'
 class Node
   attr_accessor :val, :next
 
-  def initialize(val, next_node)
+  def initialize(val, next_node = nil)
     @val = val
     @next = next_node
+  end
+
+  def empty?
+    @val.nil? && @next.nil?
+  end
+
+  def present?
+    !empty?
+  end
+
+  def append(another)
+    if empty?
+      self.val = another.val
+      self.next = nil
+      return self
+    else
+      self.next = Node.new(another.val)
+      return self.next
+    end
   end
 end
 
 class LinkedList
   attr_accessor :head
-  def initialize(val)
-    @head = Node.new(val, nil)
+  def initialize(val = nil)
+    if val.is_a?(Array)
+      build_from_array(val, 0)
+    else
+      @head = Node.new(val, nil)
+    end
+  end
+
+  def build_from_array(array, position)
+    this_node = Node.new(array[position])
+    return this_node if array[position + 1].nil?
+    this_node.next = build_from_array(array, position + 1)
+    @head = this_node
   end
 
   def get_nth_node(n)
@@ -110,6 +140,12 @@ class LinkedList
   end
 
   # Algos:
+  #   1. Swap 2 nodes without swapping the data, just by swapping the pointers
+  #   @todos: [Cases]
+  #     - any item is not present
+  #     - both are same
+  #     - any is head
+  #     - any is tail
   def swap_two_nodes(source_key, destination_key)
     return unless node = @head
     prev_node = nil
@@ -131,6 +167,68 @@ class LinkedList
     old_next_for_dest = dest_node.next
     dest_node.next = old_next_for_source
     source_node.next = old_next_for_dest
+  end
+
+  # Algos:
+  #   2. Reverse the linked list I & R [ 5 --> 10 --> 25 --> 30 --> 40]
+  def reverse_iteratively
+    return unless @head
+    return unless @head.next
+    node = @head
+    prev = nil
+    while node
+      old_next = node.next
+      node.next = prev
+      prev = node
+      node = old_next
+    end
+    @head = prev
+  end
+
+  def reverse_recursively(node)
+    # binding.pry
+    @head = node
+    unless node.next
+      return node
+    end
+    if node.next
+      # binding.pry
+      ret = reverse_recursively(node.next)
+      # binding.pry
+      ret.next = node
+      node.next = nil if node.next == ret
+    end
+  end
+
+  def empty?
+    head.empty?
+  end
+
+  # [1 10]
+  # [2 20 30]
+  def self.merge_sorted_list_iteratively(list1, list2)
+    list = LinkedList.new
+    tail = list.head
+    list1 = list1.head
+    list2 = list2.head
+    return nil if list1.empty? && list2.empty?
+
+    while list1 || list2
+      if !list1
+        tail = tail.append Node.new(list2.val)
+        list2 = list2.next
+      elsif !list2
+        tail = tail.append Node.new(list1.val)
+        list1 = list1.next
+      elsif list1.val <= list2.val
+        tail = tail.append Node.new(list1.val)
+        list1 = list1.next
+      else
+        tail = tail.append Node.new(list2.val)
+        list2 = list2.next
+      end
+    end
+    list
   end
 end
 
@@ -169,6 +267,26 @@ ll.return_list.map do |node|
   puts node.val
 end
 
-puts "\n\nTesting length iterative: #{ll.length_iterative}\n\n"
+puts "\n\nTesting length iterative: #{ll.length_iterative}"
 puts "\n\nTesting length recursive: #{ll.length_recursive(ll.head)}\n\n"
 
+
+puts "\n\nTesting reverse iteratively\n\n"
+ll.reverse_iteratively
+ll.return_list.map do |node|
+  puts node.val
+end
+
+# puts "\n\nTesting reverse recursively\n\n"
+# ll.reverse_recursively(ll.head)
+# ll.return_list.map do |node|
+#   puts node.val
+# end
+
+puts "\n\nTesting merge 2 lists iteratively\n\n"
+l1 = LinkedList.new([1, 10])
+l2 = LinkedList.new([2, 15, 20, 30])
+l3 = LinkedList.merge_sorted_list_iteratively(l1, l2)
+l3.return_list.map do |node|
+  puts node.val
+end
